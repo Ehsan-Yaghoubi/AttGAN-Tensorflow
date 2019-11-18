@@ -8,6 +8,8 @@ import numpy as np
 import tensorflow as tf
 import tensorflow.contrib.eager as tfe
 from tflib.utils import session
+import pandas as pd
+import cv2
 
 
 def batch_dataset(dataset, batch_size, prefetch_batch=2, drop_remainder=True, filter=None,
@@ -249,11 +251,253 @@ class Celeba(Dataset):
 
         return att_batch
 
+class RAP_dataset(Dataset):
+
+    att_dict = {"Female" : 0,
+                "AgeLess16" : 1,
+                "Age17to30" : 2,
+                "Age31to45" : 3,
+                "Age46to60" : 4,
+                "BodyFat" : 5,
+                "BodyNormal" : 6,
+                "BodyThin" : 7,
+                "Customer" : 8,
+                "Employee" : 9,
+                "hsBaldHead" : 10,
+                "hsLongHair" : 11,
+                "hsBlackHair" : 12,
+                "hsHat" : 13,
+                "hsGlasses" : 14,
+                "ubShirt" : 15,
+                "ubSweater" : 16,
+                "ubVest" : 17,
+                "ubTShirt" : 18,
+                "ubCotton" : 19,
+                "ubJacket" : 20,
+                "ubSuitUp" : 21,
+                "ubTight" : 22,
+                "ubShortSleeve" : 23,
+                "ubOthers" : 24,
+                "lbLongTrousers" : 25,
+                "lbSkirt" : 26,
+                "lbShortSkirt" : 27,
+                "lbDress" : 28,
+                "lbJeans" : 29,
+                "lbTightTrousers" : 30,
+                "shoesLeather" : 31,
+                "shoesSports" : 32,
+                "shoesBoots" : 33,
+                "shoesCloth" : 34,
+                "shoesCasual" : 35,
+                "shoesOther" : 36,
+                "attachmentBackpack" : 37,
+                "attachmentShoulderBag" : 38,
+                "attachmentHandBag" : 39,
+                "attachmentBox" : 40,
+                "attachmentPlasticBag" : 41,
+                "attachmentPaperBag" : 42,
+                "attachmentHandTrunk" : 43,
+                "attachmentOther" : 44,
+                "actionCalling" : 45,
+                "actionTalking" : 46,
+                "actionGathering" : 47,
+                "actionHolding" : 48,
+                "actionPushing" : 49,
+                "actionPulling" : 50,
+                "actionCarryingByArm" : 51,
+                "actionCarryingByHand" : 52,
+                "actionOther" : 53,
+                "Male" : 54}
+
+    def __init__(self, data_dir, atts, img_resize, batch_size, prefetch_batch=2, drop_remainder=True,
+                 num_threads=16, shuffle=True, buffer_size=4096, repeat=-1, sess=None, part='train', crop=False):
+        super(RAP_dataset, self).__init__()
+
+        list_file_test = os.path.join(data_dir, 'TEST_RAP_pandas_frame_data_format_1.txt')
+        list_file_train = os.path.join(data_dir, 'TRAIN_RAP_pandas_frame_data_format_1.txt')
+
+        if crop:
+            img_dir_jpg = os.path.join(data_dir, 'img_align_celeba')
+            img_dir_png = os.path.join(data_dir, 'img_align_celeba_png')
+        else:
+            img_dir_jpg = os.path.join(data_dir, 'img_crop_celeba')
+            img_dir_png = os.path.join(data_dir, 'img_crop_celeba_png')
+
+        img_paths_test = np.loadtxt(list_file_test, skiprows=1, usecols=[0], dtype=np.str)
+        att_id = [RAP_dataset.att_dict[att] + 1 for att in atts]
+        labels_test = np.loadtxt(list_file_test, skiprows=1, usecols=att_id, dtype=np.int64)
+
+        img_paths_train = np.loadtxt(list_file_train, skiprows=1, usecols=[0], dtype=np.str)
+        att_id = [RAP_dataset.att_dict[att] + 1 for att in atts]
+        labels_train = np.loadtxt(list_file_train, skiprows=1, usecols=att_id, dtype=np.int64)
+
+
+
+        if img_resize == 64:
+            # crop as how VAE/GAN do
+            offset_h = 40
+            offset_w = 15
+            img_size = 148
+        else:
+            offset_h = 26
+            offset_w = 3
+            img_size = 170
+
+        def _map_func(img, label):
+            if crop:
+                img = tf.image.crop_to_bounding_box(img, offset_h, offset_w, img_size, img_size)
+            # img = tf.image.resize_images(img, [img_resize, img_resize]) / 127.5 - 1
+            # or
+            img = tf.image.resize_images(img, [img_resize, img_resize], tf.image.ResizeMethod.BICUBIC)
+            img = tf.clip_by_value(img, 0, 255) / 127.5 - 1
+            label = (label + 1) // 2
+            return img, label
+
+        if part == 'test':
+            drop_remainder = False
+            shuffle = False
+            repeat = 1
+            img_paths = img_paths_test
+            labels = labels_test
+        else:
+            img_paths = img_paths_train
+            labels = labels_train
+
+        dataset = disk_image_batch_dataset(img_paths=img_paths,
+                                           labels=labels,
+                                           batch_size=batch_size,
+                                           prefetch_batch=prefetch_batch,
+                                           drop_remainder=drop_remainder,
+                                           map_func=_map_func,
+                                           num_threads=num_threads,
+                                           shuffle=shuffle,
+                                           buffer_size=buffer_size,
+                                           repeat=repeat)
+        self._bulid(dataset, sess)
+
+        self._img_num = len(img_paths)
+
+    def __len__(self):
+        return self._img_num
+
+    @staticmethod
+    def check_attribute_conflict(att_batch, att_name, att_names):
+        def _set(att, value, att_name):
+            if att_name in att_names:
+                att[att_names.index(att_name)] = value
+
+        att_id = att_names.index(att_name)
+
+        for att in att_batch:
+            if att_name in ['Bald', 'Receding_Hairline'] and att[att_id] == 1:
+                _set(att, 0, 'Bangs')
+            elif att_name == 'Bangs' and att[att_id] == 1:
+                _set(att, 0, 'Bald')
+                _set(att, 0, 'Receding_Hairline')
+            elif att_name in ['Black_Hair', 'Blond_Hair', 'Brown_Hair', 'Gray_Hair'] and att[att_id] == 1:
+                for n in ['Black_Hair', 'Blond_Hair', 'Brown_Hair', 'Gray_Hair']:
+                    if n != att_name:
+                        _set(att, 0, n)
+            elif att_name in ['Straight_Hair', 'Wavy_Hair'] and att[att_id] == 1:
+                for n in ['Straight_Hair', 'Wavy_Hair']:
+                    if n != att_name:
+                        _set(att, 0, n)
+
+        return att_batch
+
+
+# class RAP(Dataset):
+#
+#     def __init__(self, csv_dir, Categories, batch_size, prefetch_batch=2, drop_remainder=True,
+#                  num_threads=16, shuffle=True, buffer_size=4096, repeat=-1, sess=None, part='train'):
+#         super(RAP, self).__init__()
+#         train_csv_dir = os.path.join(csv_dir,"TRAIN_RAP_pandas_frame_data_format_1.csv")
+#         test_csv_dir = os.path.join(csv_dir,"TEST_RAP_pandas_frame_data_format_1.csv")
+#         Train_df = pd.read_csv(train_csv_dir)
+#         Train_df['Train_Filenames']=Train_df['Train_Filenames'].apply(lambda x:str(x).split(","))
+#         Train_df.head()
+#         print(Train_df.columns)
+#         Train_img_paths = Train_df['Train_Filenames']
+#         Train_labels = Train_df[Categories]
+#
+#         Test_df = pd.read_csv(test_csv_dir)
+#         Test_df['Test_Filenames']=Test_df['Test_Filenames'].apply(lambda x:str(x).split(","))
+#         Test_df.head()
+#         print(Test_df.columns)
+#         Test_img_paths = Test_df['Test_Filenames']
+#         Test_labels = Test_df[Categories]
+#
+#         if part == 'test':
+#             drop_remainder = False
+#             shuffle = False
+#             repeat = 1
+#             img_paths = Test_img_paths
+#             labels = Test_labels
+#         else:
+#             img_paths = Train_img_paths
+#             labels = Train_labels
+#         img_paths_list = []
+#         labels_list = []
+#         for i, path in enumerate(img_paths):
+#             img_paths_list.append(path)
+#         for i, label in enumerate(labels):
+#             labels_list.append(label)
+#
+#         dataset = disk_image_batch_dataset(img_paths=img_paths_list,
+#                                            labels=labels_list,
+#                                            batch_size=batch_size,
+#                                            prefetch_batch=prefetch_batch,
+#                                            drop_remainder=drop_remainder,
+#                                            num_threads=num_threads,
+#                                            shuffle=shuffle,
+#                                            buffer_size=buffer_size,
+#                                            repeat=repeat)
+#         self._bulid(dataset, sess)
+#
+#         self._img_num = len(img_paths)
+#
+#     def __len__(self):
+#         return self._img_num
+#
+#     @staticmethod
+#     def check_attribute_conflict(att_batch, att_name, att_names):
+#         def _set(att, value, att_name):
+#             if att_name in att_names:
+#                 att[att_names.index(att_name)] = value
+#
+#         att_id = att_names.index(att_name)
+#
+#         for att in att_batch:
+#             if att_name in ['Bald', 'Receding_Hairline'] and att[att_id] == 1:
+#                 _set(att, 0, 'Bangs')
+#             elif att_name == 'Bangs' and att[att_id] == 1:
+#                 _set(att, 0, 'Bald')
+#                 _set(att, 0, 'Receding_Hairline')
+#             elif att_name in ['Black_Hair', 'Blond_Hair', 'Brown_Hair', 'Gray_Hair'] and att[att_id] == 1:
+#                 for n in ['Black_Hair', 'Blond_Hair', 'Brown_Hair', 'Gray_Hair']:
+#                     if n != att_name:
+#                         _set(att, 0, n)
+#             elif att_name in ['Straight_Hair', 'Wavy_Hair'] and att[att_id] == 1:
+#                 for n in ['Straight_Hair', 'Wavy_Hair']:
+#                     if n != att_name:
+#                         _set(att, 0, n)
+#
+#         return att_batch
 
 if __name__ == '__main__':
     import imlib as im
-    atts = ['Bald', 'Bangs', 'Black_Hair', 'Blond_Hair', 'Brown_Hair', 'Bushy_Eyebrows', 'Eyeglasses', 'Male', 'Mouth_Slightly_Open', 'Mustache', 'No_Beard', 'Pale_Skin', 'Young']
-    data = Celeba('./data', atts, 128, 32, part='val')
+    #atts = ['Bald', 'Bangs', 'Black_Hair', 'Blond_Hair', 'Brown_Hair', 'Bushy_Eyebrows', 'Eyeglasses', 'Male', 'Mouth_Slightly_Open', 'Mustache', 'No_Beard', 'Pale_Skin', 'Young']
+    #data = Celeba('./data', atts, 128, 32, part='val')
+    atts = ["Female","AgeLess16","Age17to30","Age31to45","Age46to60","BodyFat","BodyNormal","BodyThin","Customer","Employee",
+            "hsBaldHead","hsLongHair","hsBlackHair","hsHat","hsGlasses","ubShirt","ubSweater","ubVest","ubTShirt",
+            "ubCotton","ubJacket","ubSuitUp","ubTight","ubShortSleeve","ubOthers","lbLongTrousers","lbSkirt",
+            "lbShortSkirt","lbDress","lbJeans","lbTightTrousers","shoesLeather","shoesSports","shoesBoots",
+            "shoesCloth","shoesCasual","shoesOther","attachmentBackpack","attachmentShoulderBag","attachmentHandBag",
+            "attachmentBox","attachmentPlasticBag","attachmentPaperBag","attachmentHandTrunk","attachmentOther",
+            "actionCalling","actionTalking","actionGathering","actionHolding","actionPushing","actionPulling",
+            "actionCarryingByArm","actionCarryingByHand","actionOther", "Male"]
+    txt_dir = "./RAP_scripts"
+    data = RAP_dataset(data_dir=txt_dir,atts= atts,batch_size=32, img_resize= 128, prefetch_batch=2, drop_remainder=True, num_threads=16, shuffle=True, buffer_size=1, repeat=-1, sess=None, part='train')
     batch = data.get_next()
     print(len(data))
     print(batch[1][1], batch[1].dtype)

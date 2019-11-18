@@ -25,8 +25,16 @@ import models
 
 parser = argparse.ArgumentParser()
 # model
-att_default = ['Bald', 'Bangs', 'Black_Hair', 'Blond_Hair', 'Brown_Hair', 'Bushy_Eyebrows', 'Eyeglasses', 'Male', 'Mouth_Slightly_Open', 'Mustache', 'No_Beard', 'Pale_Skin', 'Young']
-parser.add_argument('--atts', dest='atts', default=att_default, choices=data.Celeba.att_dict.keys(), nargs='+', help='attributes to learn')
+att_ = ['Bald', 'Bangs', 'Black_Hair', 'Blond_Hair', 'Brown_Hair', 'Bushy_Eyebrows', 'Eyeglasses', 'Male', 'Mouth_Slightly_Open', 'Mustache', 'No_Beard', 'Pale_Skin', 'Young']
+atts_RAP = ["Female", "AgeLess16", "Age17to30", "Age31to45", "Age46to60", "BodyFat", "BodyNormal", "BodyThin", "Customer",
+        "Employee", "hsBaldHead", "hsLongHair", "hsBlackHair", "hsHat", "hsGlasses", "ubShirt", "ubSweater", "ubVest", "ubTShirt",
+        "ubCotton", "ubJacket", "ubSuitUp", "ubTight", "ubShortSleeve", "ubOthers", "lbLongTrousers", "lbSkirt",
+        "lbShortSkirt", "lbDress", "lbJeans", "lbTightTrousers", "shoesLeather", "shoesSports", "shoesBoots",
+        "shoesCloth", "shoesCasual", "shoesOther", "attachmentBackpack", "attachmentShoulderBag", "attachmentHandBag",
+        "attachmentBox", "attachmentPlasticBag", "attachmentPaperBag", "attachmentHandTrunk", "attachmentOther",
+        "actionCalling", "actionTalking", "actionGathering", "actionHolding", "actionPushing", "actionPulling",
+        "actionCarryingByArm", "actionCarryingByHand", "actionOther", "Male"]
+parser.add_argument('--atts', dest='atts', default=atts_RAP, choices=data.RAP_dataset.att_dict.keys(), nargs='+', help='attributes to learn')
 parser.add_argument('--img_size', dest='img_size', type=int, default=128)
 parser.add_argument('--shortcut_layers', dest='shortcut_layers', type=int, default=1)
 parser.add_argument('--inject_layers', dest='inject_layers', type=int, default=0)
@@ -40,7 +48,7 @@ parser.add_argument('--dis_layers', dest='dis_layers', type=int, default=5)
 # training
 parser.add_argument('--mode', dest='mode', default='wgan', choices=['wgan', 'lsgan', 'dcgan'])
 parser.add_argument('--epoch', dest='epoch', type=int, default=200, help='# of epochs')
-parser.add_argument('--batch_size', dest='batch_size', type=int, default=32)
+parser.add_argument('--batch_size', dest='batch_size', type=int, default=16)
 parser.add_argument('--lr', dest='lr', type=float, default=0.0002, help='learning rate')
 parser.add_argument('--n_d', dest='n_d', type=int, default=5, help='# of d updates per g update')
 parser.add_argument('--b_distribution', dest='b_distribution', default='none', choices=['none', 'uniform', 'truncated_normal'])
@@ -89,9 +97,15 @@ with open('./output/%s/setting.txt' % experiment_name, 'w') as f:
 # ==============================================================================
 
 # data
+
+
 sess = tl.session()
-tr_data = data.Celeba('./data', atts, img_size, batch_size, part='train', sess=sess, crop=not use_cropped_img)
-val_data = data.Celeba('./data', atts, img_size, n_sample, part='val', shuffle=False, sess=sess, crop=not use_cropped_img)
+txt_dir_RAP = "./RAP_scripts"
+tr_data = data.RAP_dataset(data_dir=txt_dir_RAP, atts=atts, batch_size=32, img_resize= 128, part='train', sess=sess)
+val_data = data.RAP_dataset(data_dir=txt_dir_RAP, atts=atts, batch_size=64, img_resize= 128, part='test', sess=sess)
+#txt_dir_RAP_dataset = "./data"
+#tr_data = data.RAP_dataset('./data', atts, img_size, batch_size, part='train', sess=sess, crop=not use_cropped_img)
+#val_data = data.RAP_dataset('./data', atts, img_size, n_sample, part='val', shuffle=False, sess=sess, crop=not use_cropped_img)
 
 # models
 Genc = partial(models.Genc, dim=enc_dim, n_layers=enc_layers)
@@ -215,7 +229,7 @@ try:
     for i in range(len(atts)):
         tmp = np.array(a_sample_ipt, copy=True)
         tmp[:, i] = 1 - tmp[:, i]   # inverse attribute
-        tmp = data.Celeba.check_attribute_conflict(tmp, atts[i], atts)
+        #tmp = data.RAP_dataset.check_attribute_conflict(tmp, atts[i], atts)
         b_sample_ipt_list.append(tmp)
 
     it_per_epoch = len(tr_data) // (batch_size * (n_d + 1))

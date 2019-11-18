@@ -23,7 +23,7 @@ import models
 # ==============================================================================
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--experiment_name', dest='experiment_name', help='experiment_name')
+parser.add_argument('--experiment_name', dest='experiment_name', help='experiment_name', default="128_shortcut1_inject1_none")
 parser.add_argument('--test_int', dest='test_int', type=float, default=1.0, help='test_int')
 args_ = parser.parse_args()
 with open('./output/%s/setting.txt' % args_.experiment_name) as f:

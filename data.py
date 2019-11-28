@@ -253,61 +253,21 @@ class Celeba(Dataset):
 
 class RAP_dataset(Dataset):
 
-    att_dict = {"Female" : 0,
-                "AgeLess16" : 1,
-                "Age17to30" : 2,
-                "Age31to45" : 3,
-                "Age46to60" : 4,
-                "BodyFat" : 5,
-                "BodyNormal" : 6,
-                "BodyThin" : 7,
-                "Customer" : 8,
-                "Employee" : 9,
-                "hsBaldHead" : 10,
-                "hsLongHair" : 11,
-                "hsBlackHair" : 12,
-                "hsHat" : 13,
-                "hsGlasses" : 14,
-                "ubShirt" : 15,
-                "ubSweater" : 16,
-                "ubVest" : 17,
-                "ubTShirt" : 18,
-                "ubCotton" : 19,
-                "ubJacket" : 20,
-                "ubSuitUp" : 21,
-                "ubTight" : 22,
-                "ubShortSleeve" : 23,
-                "ubOthers" : 24,
-                "lbLongTrousers" : 25,
-                "lbSkirt" : 26,
-                "lbShortSkirt" : 27,
-                "lbDress" : 28,
-                "lbJeans" : 29,
-                "lbTightTrousers" : 30,
-                "shoesLeather" : 31,
-                "shoesSports" : 32,
-                "shoesBoots" : 33,
-                "shoesCloth" : 34,
-                "shoesCasual" : 35,
-                "shoesOther" : 36,
-                "attachmentBackpack" : 37,
-                "attachmentShoulderBag" : 38,
-                "attachmentHandBag" : 39,
-                "attachmentBox" : 40,
-                "attachmentPlasticBag" : 41,
-                "attachmentPaperBag" : 42,
-                "attachmentHandTrunk" : 43,
-                "attachmentOther" : 44,
-                "actionCalling" : 45,
-                "actionTalking" : 46,
-                "actionGathering" : 47,
-                "actionHolding" : 48,
-                "actionPushing" : 49,
-                "actionPulling" : 50,
-                "actionCarryingByArm" : 51,
-                "actionCarryingByHand" : 52,
-                "actionOther" : 53,
-                "Male" : 54}
+    att_dict = {"ubShirt" : 0,
+                "ubSweater" : 1,
+                "ubVest" : 2,
+                "ubTShirt" : 3,
+                "ubCotton" : 4,
+                "ubJacket" : 5,
+                "ubSuitUp" : 6,
+                "ubTight" : 7,
+                "ubShortSleeve" : 8,
+                "lbLongTrousers" : 9,
+                "lbSkirt" : 10,
+                "lbShortSkirt" : 11,
+                "lbDress" : 12,
+                "lbJeans" : 13,
+                "lbTightTrousers" : 14}
 
     def __init__(self, data_dir, atts, img_resize, batch_size, prefetch_batch=2, drop_remainder=True,
                  num_threads=16, shuffle=True, buffer_size=4096, repeat=-1, sess=None, part='train', crop=False):
@@ -488,16 +448,19 @@ if __name__ == '__main__':
     import imlib as im
     #atts = ['Bald', 'Bangs', 'Black_Hair', 'Blond_Hair', 'Brown_Hair', 'Bushy_Eyebrows', 'Eyeglasses', 'Male', 'Mouth_Slightly_Open', 'Mustache', 'No_Beard', 'Pale_Skin', 'Young']
     #data = Celeba('./data', atts, 128, 32, part='val')
-    atts = ["Female","AgeLess16","Age17to30","Age31to45","Age46to60","BodyFat","BodyNormal","BodyThin","Customer","Employee",
-            "hsBaldHead","hsLongHair","hsBlackHair","hsHat","hsGlasses","ubShirt","ubSweater","ubVest","ubTShirt",
-            "ubCotton","ubJacket","ubSuitUp","ubTight","ubShortSleeve","ubOthers","lbLongTrousers","lbSkirt",
-            "lbShortSkirt","lbDress","lbJeans","lbTightTrousers","shoesLeather","shoesSports","shoesBoots",
-            "shoesCloth","shoesCasual","shoesOther","attachmentBackpack","attachmentShoulderBag","attachmentHandBag",
-            "attachmentBox","attachmentPlasticBag","attachmentPaperBag","attachmentHandTrunk","attachmentOther",
-            "actionCalling","actionTalking","actionGathering","actionHolding","actionPushing","actionPulling",
-            "actionCarryingByArm","actionCarryingByHand","actionOther", "Male"]
+    # atts = ["Female","AgeLess16","Age17to30","Age31to45","Age46to60","BodyFat","BodyNormal","BodyThin","Customer","Employee",
+    #         "hsBaldHead","hsLongHair","hsBlackHair","hsHat","hsGlasses","ubShirt","ubSweater","ubVest","ubTShirt",
+    #         "ubCotton","ubJacket","ubSuitUp","ubTight","ubShortSleeve","ubOthers","lbLongTrousers","lbSkirt",
+    #         "lbShortSkirt","lbDress","lbJeans","lbTightTrousers","shoesLeather","shoesSports","shoesBoots",
+    #         "shoesCloth","shoesCasual","shoesOther","attachmentBackpack","attachmentShoulderBag","attachmentHandBag",
+    #         "attachmentBox","attachmentPlasticBag","attachmentPaperBag","attachmentHandTrunk","attachmentOther",
+    #         "actionCalling","actionTalking","actionGathering","actionHolding","actionPushing","actionPulling",
+    #         "actionCarryingByArm","actionCarryingByHand","actionOther", "Male"]
+    atts_RAP = ["ubShirt", "ubSweater", "ubVest", "ubTShirt",
+            "ubCotton", "ubJacket", "ubSuitUp", "ubTight", "ubShortSleeve", "lbLongTrousers", "lbSkirt",
+            "lbShortSkirt", "lbDress", "lbJeans", "lbTightTrousers"]
     txt_dir = "./RAP_scripts"
-    data = RAP_dataset(data_dir=txt_dir,atts= atts,batch_size=32, img_resize= 128, prefetch_batch=2, drop_remainder=True, num_threads=16, shuffle=True, buffer_size=1, repeat=-1, sess=None, part='train')
+    data = RAP_dataset(data_dir=txt_dir,atts= atts_RAP,batch_size=32, img_resize= 128, prefetch_batch=2, drop_remainder=True, num_threads=16, shuffle=True, buffer_size=1, repeat=-1, sess=None, part='train')
     batch = data.get_next()
     print(len(data))
     print(batch[1][1], batch[1].dtype)

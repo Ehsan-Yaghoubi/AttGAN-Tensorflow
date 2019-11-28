@@ -26,14 +26,7 @@ import models
 parser = argparse.ArgumentParser()
 # model
 att_ = ['Bald', 'Bangs', 'Black_Hair', 'Blond_Hair', 'Brown_Hair', 'Bushy_Eyebrows', 'Eyeglasses', 'Male', 'Mouth_Slightly_Open', 'Mustache', 'No_Beard', 'Pale_Skin', 'Young']
-atts_RAP = ["Female", "AgeLess16", "Age17to30", "Age31to45", "Age46to60", "BodyFat", "BodyNormal", "BodyThin", "Customer",
-        "Employee", "hsBaldHead", "hsLongHair", "hsBlackHair", "hsHat", "hsGlasses", "ubShirt", "ubSweater", "ubVest", "ubTShirt",
-        "ubCotton", "ubJacket", "ubSuitUp", "ubTight", "ubShortSleeve", "ubOthers", "lbLongTrousers", "lbSkirt",
-        "lbShortSkirt", "lbDress", "lbJeans", "lbTightTrousers", "shoesLeather", "shoesSports", "shoesBoots",
-        "shoesCloth", "shoesCasual", "shoesOther", "attachmentBackpack", "attachmentShoulderBag", "attachmentHandBag",
-        "attachmentBox", "attachmentPlasticBag", "attachmentPaperBag", "attachmentHandTrunk", "attachmentOther",
-        "actionCalling", "actionTalking", "actionGathering", "actionHolding", "actionPushing", "actionPulling",
-        "actionCarryingByArm", "actionCarryingByHand", "actionOther", "Male"]
+atts_RAP = ["ubShirt", "ubSweater", "ubVest", "ubTShirt", "ubCotton", "ubJacket", "ubSuitUp", "ubTight", "ubShortSleeve", "lbLongTrousers", "lbSkirt", "lbShortSkirt", "lbDress", "lbJeans", "lbTightTrousers"]
 parser.add_argument('--atts', dest='atts', default=atts_RAP, choices=data.RAP_dataset.att_dict.keys(), nargs='+', help='attributes to learn')
 parser.add_argument('--img_size', dest='img_size', type=int, default=128)
 parser.add_argument('--shortcut_layers', dest='shortcut_layers', type=int, default=1)

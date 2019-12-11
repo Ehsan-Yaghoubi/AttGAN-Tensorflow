@@ -252,36 +252,30 @@ class Celeba(Dataset):
         return att_batch
 
 class RAP_dataset(Dataset):
-
-    att_dict = {"ubShirt" : 0,
-                "ubSweater" : 1,
-                "ubVest" : 2,
-                "ubTShirt" : 3,
-                "ubCotton" : 4,
-                "ubJacket" : 5,
-                "ubSuitUp" : 6,
-                "ubTight" : 7,
-                "ubShortSleeve" : 8,
-                "lbLongTrousers" : 9,
-                "lbSkirt" : 10,
-                "lbShortSkirt" : 11,
-                "lbDress" : 12,
-                "lbJeans" : 13,
-                "lbTightTrousers" : 14}
+    # @todo
+    att_dict = {'Female':0}
+    # att_dict = {"ubShirt" : 0,
+    #             "ubSweater" : 1,
+    #             "ubVest" : 2,
+    #             "ubTShirt" : 3,
+    #             "ubCotton" : 4,
+    #             "ubJacket" : 5,
+    #             "ubSuitUp" : 6,
+    #             "ubTight" : 7,
+    #             "ubShortSleeve" : 8,
+    #             "lbLongTrousers" : 9,
+    #             "lbSkirt" : 10,
+    #             "lbShortSkirt" : 11,
+    #             "lbDress" : 12,
+    #             "lbJeans" : 13,
+    #             "lbTightTrousers" : 14}
 
     def __init__(self, data_dir, atts, img_resize, batch_size, prefetch_batch=2, drop_remainder=True,
                  num_threads=16, shuffle=True, buffer_size=4096, repeat=-1, sess=None, part='train', crop=False):
         super(RAP_dataset, self).__init__()
 
-        list_file_test = os.path.join(data_dir, 'TEST_RAP_pandas_frame_data_format_1.txt')
-        list_file_train = os.path.join(data_dir, 'TRAIN_RAP_pandas_frame_data_format_1.txt')
-
-        if crop:
-            img_dir_jpg = os.path.join(data_dir, 'img_align_celeba')
-            img_dir_png = os.path.join(data_dir, 'img_align_celeba_png')
-        else:
-            img_dir_jpg = os.path.join(data_dir, 'img_crop_celeba')
-            img_dir_png = os.path.join(data_dir, 'img_crop_celeba_png')
+        list_file_test = os.path.join(data_dir, 'test.txt')
+        list_file_train = os.path.join(data_dir, 'train.txt')
 
         img_paths_test = np.loadtxt(list_file_test, skiprows=1, usecols=[0], dtype=np.str)
         att_id = [RAP_dataset.att_dict[att] + 1 for att in atts]
@@ -290,7 +284,6 @@ class RAP_dataset(Dataset):
         img_paths_train = np.loadtxt(list_file_train, skiprows=1, usecols=[0], dtype=np.str)
         att_id = [RAP_dataset.att_dict[att] + 1 for att in atts]
         labels_train = np.loadtxt(list_file_train, skiprows=1, usecols=att_id, dtype=np.int64)
-
 
 
         if img_resize == 64:
@@ -456,9 +449,7 @@ if __name__ == '__main__':
     #         "attachmentBox","attachmentPlasticBag","attachmentPaperBag","attachmentHandTrunk","attachmentOther",
     #         "actionCalling","actionTalking","actionGathering","actionHolding","actionPushing","actionPulling",
     #         "actionCarryingByArm","actionCarryingByHand","actionOther", "Male"]
-    atts_RAP = ["ubShirt", "ubSweater", "ubVest", "ubTShirt",
-            "ubCotton", "ubJacket", "ubSuitUp", "ubTight", "ubShortSleeve", "lbLongTrousers", "lbSkirt",
-            "lbShortSkirt", "lbDress", "lbJeans", "lbTightTrousers"]
+    atts_RAP = ['Female']
     txt_dir = "./RAP_scripts"
     data = RAP_dataset(data_dir=txt_dir,atts= atts_RAP,batch_size=32, img_resize= 128, prefetch_batch=2, drop_remainder=True, num_threads=16, shuffle=True, buffer_size=1, repeat=-1, sess=None, part='train')
     batch = data.get_next()

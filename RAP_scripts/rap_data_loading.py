@@ -6,10 +6,10 @@ import random
 import numpy as np
 
 # paths
-rap_images_dir = '/media/ehsan/48BE4782BE476810/AA_GITHUP/Anchor_Level_Paper/RAP_images'
-rap_masks_dir = '/media/ehsan/48BE4782BE476810/AA_GITHUP/Anchor_Level_Paper/RAP_masks'
-rap_keypoints_json = '/media/ehsan/48BE4782BE476810/AA_GITHUP/Anchor_Level_Paper/Anchor_level_rap/rap_annotations/RAP_keypoints.json'
-rap_attribute_annotations = '/media/ehsan/48BE4782BE476810/AA_GITHUP/Anchor_Level_Paper/Anchor_level_rap/rap_annotations/RAP_annotation.mat'
+rap_images_dir = '/work/image-databases/RAP_data/RAP_images'
+rap_masks_dir = '/work/image-databases/RAP_data/RAP_masks'
+rap_keypoints_json = '/work/image-databases/RAP_data/rap_annotations/RAP_keypoints.json'
+rap_attribute_annotations = '/work/image-databases/RAP_data/rap_annotations/RAP_annotation.mat'
 
 # rap keypoints names
 kp_left_ankle = 0
@@ -401,6 +401,7 @@ def load_rap_dataset(rap_attributes_filepath, rap_keypoints_json):
         rap_data[image_name]["attibute_names"] = rap_attibute_names
 
     return rap_data
+
 
 def get_head_bbox(attrs):
     head_brect = (int(attrs[attr_headshoulder_position_x] - attrs[attr_person_position_x]), int(attrs[attr_headshoulder_position_y] - attrs[attr_person_position_y]),

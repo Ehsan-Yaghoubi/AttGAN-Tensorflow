@@ -27,7 +27,8 @@ parser = argparse.ArgumentParser()
 # model
 att_ = ['Bald', 'Bangs', 'Black_Hair', 'Blond_Hair', 'Brown_Hair', 'Bushy_Eyebrows', 'Eyeglasses', 'Male', 'Mouth_Slightly_Open', 'Mustache', 'No_Beard', 'Pale_Skin', 'Young']
 atts_RAP = ["ubShirt", "ubSweater", "ubVest", "ubTShirt", "ubCotton", "ubJacket", "ubSuitUp", "ubTight", "ubShortSleeve", "lbLongTrousers", "lbSkirt", "lbShortSkirt", "lbDress", "lbJeans", "lbTightTrousers"]
-parser.add_argument('--atts', dest='atts', default=atts_RAP, choices=data.RAP_dataset.att_dict.keys(), nargs='+', help='attributes to learn')
+attrs_RAP_gender = ['Female']
+parser.add_argument('--atts', dest='atts', default=attrs_RAP_gender, choices=data.RAP_dataset.att_dict.keys(), nargs='+', help='attributes to learn')
 parser.add_argument('--img_size', dest='img_size', type=int, default=128)
 parser.add_argument('--shortcut_layers', dest='shortcut_layers', type=int, default=1)
 parser.add_argument('--inject_layers', dest='inject_layers', type=int, default=0)
